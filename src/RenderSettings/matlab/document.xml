@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[classdef RenderSettings < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        RenderSettingsUIFigure  matlab.ui.Figure
+        FormatDropDownLabel     matlab.ui.control.Label
+        FormatDropDown          matlab.ui.control.DropDown
+        LocationEditFieldLabel  matlab.ui.control.Label
+        LocationEditField       matlab.ui.control.EditField
+        BrowseButton            matlab.ui.control.Button
+        DoneButton              matlab.ui.control.Button
+    end
+
+    
+    properties (Access = private)
+        CallingApp % Description
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app, mainapp)
+            app.CallingApp = mainapp;
+        end
+
+        % Button pushed function: BrowseButton
+        function BrowseButtonPushed(app, event)
+        [file,path] = uiputfile('.jpg');
+        app.RenderSettingsUIFigure.Visible = 'off';
+        app.RenderSettingsUIFigure.Visible = 'on';
+        if isequal(file,0)
+            %user cancelled file browser
+        else
+            app.LocationEditField.Value=strcat(path,file);
+        end
+        end
+
+        % Value changed function: FormatDropDown
+        function FormatDropDownValueChanged(app, event)
+        value = app.FormatDropDown.Value;
+        oldFilename = app.LocationEditField.Value;
+        charRemover=1;
+        while charRemover==1
+            if oldFilename(end)=='.'
+                charRemover=0;
+            end
+            oldFilename(end)='';
+        end
+        oldFilename=strcat(oldFilename,value);
+        app.LocationEditField.Value=oldFilename;
+        
+        end
+
+        % Button pushed function: DoneButton
+        function DoneButtonPushed(app, event)
+            updateRenderLocation(app.CallingApp,app.LocationEditField.Value);
+            delete(app)
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create RenderSettingsUIFigure and hide until all components are created
+            app.RenderSettingsUIFigure = uifigure('Visible', 'off');
+            app.RenderSettingsUIFigure.Position = [100 100 270 154];
+            app.RenderSettingsUIFigure.Name = 'Render Settings';
+
+            % Create FormatDropDownLabel
+            app.FormatDropDownLabel = uilabel(app.RenderSettingsUIFigure);
+            app.FormatDropDownLabel.HorizontalAlignment = 'right';
+            app.FormatDropDownLabel.Position = [17 108 44 22];
+            app.FormatDropDownLabel.Text = 'Format';
+
+            % Create FormatDropDown
+            app.FormatDropDown = uidropdown(app.RenderSettingsUIFigure);
+            app.FormatDropDown.Items = {'JPEG Sequence', 'PNG Sequence', 'TIFF Sequence', ''};
+            app.FormatDropDown.ItemsData = {'.jpg', '.png', '.tiff'};
+            app.FormatDropDown.ValueChangedFcn = createCallbackFcn(app, @FormatDropDownValueChanged, true);
+            app.FormatDropDown.Position = [76 108 184 22];
+            app.FormatDropDown.Value = '.jpg';
+
+            % Create LocationEditFieldLabel
+            app.LocationEditFieldLabel = uilabel(app.RenderSettingsUIFigure);
+            app.LocationEditFieldLabel.HorizontalAlignment = 'right';
+            app.LocationEditFieldLabel.Position = [17 71 51 22];
+            app.LocationEditFieldLabel.Text = 'Location';
+
+            % Create LocationEditField
+            app.LocationEditField = uieditfield(app.RenderSettingsUIFigure, 'text');
+            app.LocationEditField.Position = [76 71 123 22];
+
+            % Create BrowseButton
+            app.BrowseButton = uibutton(app.RenderSettingsUIFigure, 'push');
+            app.BrowseButton.ButtonPushedFcn = createCallbackFcn(app, @BrowseButtonPushed, true);
+            app.BrowseButton.Position = [211 71 49 22];
+            app.BrowseButton.Text = 'Browse';
+
+            % Create DoneButton
+            app.DoneButton = uibutton(app.RenderSettingsUIFigure, 'push');
+            app.DoneButton.ButtonPushedFcn = createCallbackFcn(app, @DoneButtonPushed, true);
+            app.DoneButton.Position = [17 15 243 22];
+            app.DoneButton.Text = 'Done';
+
+            % Show the figure after all components are created
+            app.RenderSettingsUIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = RenderSettings(varargin)
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.RenderSettingsUIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.RenderSettingsUIFigure)
+        end
+    end
+end]]></w:t></w:r></w:p></w:body></w:document>
